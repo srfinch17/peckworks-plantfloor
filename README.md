@@ -72,9 +72,9 @@ The server at `opc.tcp://localhost:4840` exposes the board under
 `Online` reads `true`; pull the board's power and, roughly 45 seconds later (the
 keepalive window), the broker publishes the board's last will and `Online` flips to
 `false` while the sensor nodes freeze at their last-known values. Verified live, both
-directions. The screenshot below is the 2026-07-14 browse of the first five nodes;
-`Online` was added to the server afterward and appears on the next rebrowse. Browsed
-live with UaExpert, values updating as the physical board is moved:
+directions. The screenshot below is the 2026-07-15 browse: all six nodes reading `Good`,
+`Online` reading `true` while the board holds the broker connection, values updating as
+the physical board is moved:
 
 ![UaExpert browsing live MatrixBoard values](docs/uaexpert-live-values.png)
 

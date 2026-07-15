@@ -255,9 +255,9 @@
   <p class="sub">The payoff is watching the board's own readings appear in UaExpert, the industry's free reference OPC UA client, with zero custom client code.</p>
 
   <div class="shot">
-    <img src="./uaexpert-live-values.png" alt="UaExpert browsing the MatrixBoard node tree: ChipTemperatureC, AccelX, AccelY, AccelZ, and LastReadingAt, all reading Good status with live values. The server hostname is redacted." loading="lazy" />
+    <img src="./uaexpert-live-values.png" alt="UaExpert browsing the MatrixBoard node tree: ChipTemperatureC, AccelX, AccelY, AccelZ, LastReadingAt, and Online, all six reading Good status with live values, Online reading true. The server hostname is redacted." loading="lazy" />
   </div>
-  <p class="figcap" style="text-align:left">UaExpert connected to <code class="inl" style="font-size:.78em">opc.tcp://localhost:4840</code>, browsing <b>Objects &gt; MatrixBoard</b>. The five nodes read <b>Good</b>, and the accelerometer values update as the physical board is moved. (The server's machine hostname is blurred.) The tree has since grown a sixth node, <b>Online</b>: the board's liveness flag, explained in section 04.</p>
+  <p class="figcap" style="text-align:left">UaExpert connected to <code class="inl" style="font-size:.78em">opc.tcp://localhost:4840</code>, browsing <b>Objects &gt; MatrixBoard</b>. All six nodes read <b>Good</b>, including <b>Online: true</b>, the liveness flag from section 04, straight off the board's retained birth message. The accelerometer values update as the physical board is moved. (The server's machine hostname is blurred.)</p>
 
   <div class="tgrid">
     <div class="tcard b"><div class="th">Browsable by design</div><div class="td">A client that knew nothing about this server discovered every value by browsing. That discovery-without-documentation property is the whole argument for OPC UA over a pile of custom REST APIs.</div></div>
