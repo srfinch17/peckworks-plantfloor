@@ -1,0 +1,13 @@
+{
+  "name": "plantfloor-bridge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bridge": "node bridge/bridge.ts",
+    "opcua": "node opcua/server.ts"
+  },
+  "dependencies": {
+    "mqtt": "^5.10.1",
+    "node-opcua": "^2.175.1"
+  }
+}

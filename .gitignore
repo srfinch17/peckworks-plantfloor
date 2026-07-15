@@ -1,0 +1,8 @@
+node_modules/
+bin/
+obj/
+*.db
+
+# Internal working doc: kept locally, not published (names target employer + personal notes).
+# Remove this line if mirroring to a private repo.
+PROJECT_BRIEF.md
