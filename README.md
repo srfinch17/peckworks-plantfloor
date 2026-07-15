@@ -4,6 +4,8 @@ A small but real industrial-IoT pipeline running on one PC and one ESP32-S3 LED 
 board, built as a hands-on lab for the two protocols factories actually use: MQTT and
 OPC UA.
 
+**Showcase site: https://srfinch17.github.io/peckworks-plantfloor/**
+
 ## Data flow
 
 ```
