@@ -1,0 +1,39 @@
+{
+  "plantfloor/matrix/temperature": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "plantfloor/matrix/temperature",
+    "description": "One chip-temperature reading published by the board (or the bridge).",
+    "type": "object",
+    "properties": {
+      "celsius": { "type": "number" },
+      "ts": { "type": "string", "format": "date-time" }
+    },
+    "required": ["celsius", "ts"],
+    "additionalProperties": false
+  },
+  "plantfloor/matrix/accelerometer": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "plantfloor/matrix/accelerometer",
+    "description": "One accelerometer reading (three axes, in g) published by the board (or the bridge).",
+    "type": "object",
+    "properties": {
+      "ax": { "type": "number" },
+      "ay": { "type": "number" },
+      "az": { "type": "number" },
+      "ts": { "type": "string", "format": "date-time" }
+    },
+    "required": ["ax", "ay", "az", "ts"],
+    "additionalProperties": false
+  },
+  "plantfloor/status/matrix": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "plantfloor/status/matrix",
+    "description": "Board liveness: the retained MQTT birth ({\"online\":true}) and last-will ({\"online\":false}).",
+    "type": "object",
+    "properties": {
+      "online": { "type": "boolean" }
+    },
+    "required": ["online"],
+    "additionalProperties": false
+  }
+}

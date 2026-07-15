@@ -5,6 +5,7 @@
 
 import mqtt from "mqtt";
 import { OPCUAServer, Variant, DataType } from "node-opcua";
+import { validate } from "../validate.js";  // JSON Schema guard: refuse wrong-shaped messages
 
 const BROKER_URL = "mqtt://localhost:1883";  // Mosquitto, same as the bridge
 const OPCUA_PORT = 4840;                     // the standard OPC UA port
@@ -36,6 +37,17 @@ client.on("connect", () => {
 client.on("message", (topic, payload) => {
   try {
     const data = JSON.parse(payload.toString());
+
+    // Schema guard. MQTT never checks a payload's shape, so a wrong-shaped message would
+    // otherwise set a value to undefined here with no error. Validate against the topic's
+    // contract (schemas/messages.schema.json) and, on a mismatch, reject it loudly and keep
+    // the last good value instead of serving junk.
+    const check = validate(topic, data);
+    if (!check.ok) {
+      console.warn("REJECTED " + topic + " (bad shape): " + check.errors.join("; ") + "  payload=" + payload.toString());
+      return;
+    }
+
     // The status topic carries the board's birth ({"online":true}) and last will
     // ({"online":false}). It has NO ts, so handle it and return before the ts line below,
     // or it would blank latest.ts.

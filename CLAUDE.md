@@ -20,6 +20,10 @@ Verify end to end: `node scripts/dbcheck.js` (row count, duplicate check, and la
 times straight from `historian/plantfloor.db`) and `node scripts/opcuacheck.ts` (reads live
 values off the OPC UA server the way UaExpert would).
 
+Message shapes are defined as JSON Schema in `schemas/messages.schema.json`. The OPC UA server
+validates every incoming message against them (`validate.js`) and rejects a wrong shape (logs
+`REJECTED ...`) rather than serving `undefined`. Check the guard alone with `node validate.js`.
+
 ## Gotchas learned the hard way
 
 - A container with `restart: unless-stopped` does NOT come back after Docker Desktop shuts down
