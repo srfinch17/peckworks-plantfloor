@@ -39,3 +39,6 @@ validates every incoming message against them (`validate.js`) and rejects a wron
 - Run exactly ONE publisher (board firmware MQTT or the bridge, never both). They publish
   identical topics, so the historian faithfully stores every reading twice; dbcheck's
   total-vs-distinct comparison is how you catch it.
+- The OPC UA server prints its endpoint as `opc.tcp://<machine-hostname>:4840` on startup,
+  and OPC UA clients (UaExpert's Project pane) display that hostname too. Redact/blur the
+  hostname in ANY screenshot or terminal capture before publishing; it has now come up twice.
