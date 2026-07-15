@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>peckworks-plantfloor: an industrial IoT telemetry pipeline</title>
-<meta name="description" content="A small industrial-IoT pipeline on real hardware: ESP32-S3 sensor readings published over MQTT into a C#/.NET historian, and re-exposed through an OPC UA server browsable in standard industrial clients." />
+<meta name="description" content="A small industrial-IoT pipeline on real hardware: an ESP32-S3 board publishes its own sensor readings over MQTT, with a last-will liveness signal and JSON Schema message contracts, into a C#/.NET historian, re-exposed through an OPC UA server browsable in standard industrial clients." />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBEMTAxNSIvPjxyZWN0IHg9IjUuNSIgeT0iMTgiIHdpZHRoPSI1LjUiIGhlaWdodD0iOCIgcng9IjEuNiIgZmlsbD0iIzJCRTBDRSIvPjxyZWN0IHg9IjEzLjI1IiB5PSIxMi41IiB3aWR0aD0iNS41IiBoZWlnaHQ9IjEzLjUiIHJ4PSIxLjYiIGZpbGw9IiNGNUMxM0QiLz48cmVjdCB4PSIyMSIgeT0iNi41IiB3aWR0aD0iNS41IiBoZWlnaHQ9IjE5LjUiIHJ4PSIxLjYiIGZpbGw9IiNGRjhBM0QiLz48L3N2Zz4K">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,16 +107,18 @@
   <div class="eyebrow">INDUSTRIAL IOT &middot; ON REAL HARDWARE</div>
   <h1 class="thesis">How factory data moves: <span class="hl">MQTT</span> and <span class="hl">OPC UA</span>.</h1>
   <p class="lede">A small but complete industrial-telemetry pipeline built on hardware you can hold.
-  Sensor readings from an <strong>ESP32-S3</strong> board are published over <strong>MQTT</strong> into a
-  <strong>C#/.NET</strong> service that stores them, and the same readings are re-exposed through an
-  <strong>OPC UA</strong> server that any standard industrial client can browse. It is the shape of a
-  real manufacturing data platform, in miniature.</p>
+  An <strong>ESP32-S3</strong> board publishes its own sensor readings over <strong>MQTT</strong>,
+  leaves a last-will liveness signal with the broker, and every message shape is enforced as
+  <strong>JSON Schema</strong>. A <strong>C#/.NET</strong> service stores the readings, and the same
+  values are re-exposed through an <strong>OPC UA</strong> server that any standard industrial client
+  can browse. It is the shape of a real manufacturing data platform, in miniature.</p>
   <div class="chips">
+    <span class="chip"><b>device</b> ESP32-S3, self-publishing</span>
     <span class="chip"><b>MQTT</b> Mosquitto</span>
     <span class="chip"><b>OPC UA</b> Node-OPCUA</span>
     <span class="chip"><b>historian</b> C# / .NET + SQLite</span>
-    <span class="chip"><b>bridge</b> TypeScript</span>
-    <span class="chip"><b>device</b> ESP32-S3</span>
+    <span class="chip"><b>contract</b> JSON Schema</span>
+    <span class="chip"><b>fallback bridge</b> TypeScript</span>
   </div>
 </div>
 
@@ -126,7 +128,7 @@
   <p class="sub">One device publishes. A broker routes. Two independent consumers store and re-expose the data. None of them knows the others exist; the broker decouples everything.</p>
 
   <div class="fig">
-    <svg viewBox="0 0 960 340" role="img" aria-label="Architecture. An ESP32-S3 board publishes sensor readings over MQTT into the Mosquitto broker, which routes them to two subscribers: a C#/.NET historian that stores every reading in SQLite, and a Node-OPCUA server that exposes the readings as browsable nodes for a client like UaExpert.">
+    <svg viewBox="0 0 960 340" role="img" aria-label="Architecture. An ESP32-S3 board publishes its own sensor readings over MQTT, plus a birth and last-will liveness pair, into the Mosquitto broker, which routes them to two subscribers: a C#/.NET historian that stores every reading in SQLite, and a Node-OPCUA server that exposes the readings as browsable nodes for a client like UaExpert.">
       <defs>
         <marker id="a" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9z" fill="#2BE0CE"/></marker>
       </defs>
@@ -135,6 +137,7 @@
       <text x="110" y="160" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="13" font-weight="700" fill="#FF8A3D">ESP32-S3 BOARD</text>
       <text x="110" y="181" text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="11" fill="#94A0B2">real sensors: chip</text>
       <text x="110" y="196" text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="11" fill="#94A0B2">temperature + accelerometer</text>
+      <text x="110" y="211" text-anchor="middle" font-family="'IBM Plex Sans',sans-serif" font-size="11" fill="#2BE0CE">self-publishing + last will</text>
       <!-- broker -->
       <rect x="300" y="123" width="170" height="100" rx="11" fill="#17120a" stroke="#F5C13D" stroke-width="1.8"/>
       <rect x="300" y="123" width="170" height="3" rx="1.5" fill="#F5C13D"/>
@@ -171,6 +174,17 @@
     consumer to the device: each one has to know its address, poll it on its own schedule, and handle its
     outages. With a broker in the middle, the device publishes once and any number of consumers subscribe,
     none of them aware of the others. That is why publish/subscribe owns the IoT world.</p>
+  </div>
+
+  <div class="card">
+    <p><strong>The board publishes for itself.</strong> The MQTT publisher lives in the board's own
+    firmware (<a href="https://github.com/srfinch17/peckworks-esp32s3matrix/blob/main/esp32_matrix_webserver/mqtt_publisher.ino" target="_blank" rel="noopener">mqtt_publisher.ino</a>
+    in <a href="https://github.com/srfinch17/peckworks-esp32s3matrix" target="_blank" rel="noopener">peckworks-esp32s3matrix</a>):
+    off by default, switched on from the board's web-UI settings, publishing every few seconds with a
+    birth/last-will liveness pair (section 04). This pipeline started life with a TypeScript bridge that
+    polled the board's HTTP API and republished; that bridge stays in the repo as a fallback for a board
+    without the firmware. Both sources publish identical topics and payloads, so the consumers cannot
+    tell them apart. Run exactly one at a time: two publishers means every reading is stored twice.</p>
   </div>
 </section>
 
@@ -243,7 +257,7 @@
   <div class="shot">
     <img src="./uaexpert-live-values.png" alt="UaExpert browsing the MatrixBoard node tree: ChipTemperatureC, AccelX, AccelY, AccelZ, and LastReadingAt, all reading Good status with live values. The server hostname is redacted." loading="lazy" />
   </div>
-  <p class="figcap" style="text-align:left">UaExpert connected to <code class="inl" style="font-size:.78em">opc.tcp://localhost:4840</code>, browsing <b>Objects &gt; MatrixBoard</b>. The five nodes read <b>Good</b>, and the accelerometer values update as the physical board is moved. (The server's machine hostname is blurred.)</p>
+  <p class="figcap" style="text-align:left">UaExpert connected to <code class="inl" style="font-size:.78em">opc.tcp://localhost:4840</code>, browsing <b>Objects &gt; MatrixBoard</b>. The five nodes read <b>Good</b>, and the accelerometer values update as the physical board is moved. (The server's machine hostname is blurred.) The tree has since grown a sixth node, <b>Online</b>: the board's liveness flag, explained in section 04.</p>
 
   <div class="tgrid">
     <div class="tcard b"><div class="th">Browsable by design</div><div class="td">A client that knew nothing about this server discovered every value by browsing. That discovery-without-documentation property is the whole argument for OPC UA over a pile of custom REST APIs.</div></div>
@@ -257,15 +271,86 @@
   </div>
 </section>
 
+<!-- LIVENESS -->
+<section id="liveness">
+  <h2 class="sh"><span class="n">04</span> The dead-man's switch</h2>
+  <p class="sub">A subscriber cannot tell "no news" from "the sender died"; silence looks the same either way. MQTT's answer is the last will: a message the board hands the broker in advance, which the broker publishes on the board's behalf if it ever goes silent.</p>
+
+  <div class="card">
+<pre style="border-left-color:var(--signal)"><code>plantfloor/status/matrix   {"online":true}    <span class="cm">&lt;- retained birth, published on connect</span>
+plantfloor/matrix/...      data every 3 s     <span class="cm">&lt;- normal operation</span>
+
+<span class="cm">   (power pulled: the board vanishes with no goodbye)
+   ~45 s of keepalive silence...</span>
+
+plantfloor/status/matrix   {"online":false}   <span class="cm">&lt;- the BROKER publishes the will
+                                                 for the dead board</span></code></pre>
+    <p style="margin-top:14px"><strong>Demonstrated live:</strong> with the board publishing for itself,
+    pulling its power froze the sensor nodes at their last values and, about 45 seconds later, the OPC UA
+    <code class="inl">Online</code> node flipped to <code class="inl">false</code>. Plugging it back in
+    published the retained birth and flipped it back. The delay is not a flaw: the broker only has silence
+    to go on, and it waits out the keepalive window before declaring the will.</p>
+  </div>
+
+  <div class="tgrid">
+    <div class="tcard"><div class="th">Reachability, not health</div><div class="td">The will means "the broker stopped hearing from this board", never "the hardware failed". The broker cannot tell dead from slow; a lapsed keepalive is all the evidence it has.</div></div>
+    <div class="tcard c"><div class="th">Why absence is not enough</div><div class="td">Retained sensor values keep looking alive after the sender dies, and a dead board cannot retract them. A positive "I'm gone" signal is the only thing that tells consumers to stop trusting the numbers on the wall.</div></div>
+    <div class="tcard b"><div class="th">Off the data topics, on purpose</div><div class="td">Status lives at <span class="mono">plantfloor/status/matrix</span>, outside the <span class="mono">plantfloor/matrix/#</span> wildcard the consumers subscribe to for data, so a liveness note is never stored as a fake sensor reading.</div></div>
+  </div>
+</section>
+
+<!-- CONTRACT -->
+<section id="contract">
+  <h2 class="sh"><span class="n">05</span> The message contract</h2>
+  <p class="sub">MQTT is a dumb pipe: the broker ships whatever bytes it is handed and never checks their shape. The firmware and this pipeline live in different repositories and agree only on the payload shapes, so those shapes are written down as JSON Schema and enforced at the door.</p>
+
+  <div class="card violet">
+<pre style="border-left-color:var(--violet)"><code><span class="cm">// schemas/messages.schema.json: the shape both sides rely on</span>
+"plantfloor/matrix/temperature": {
+  "type": "object",
+  "properties": {
+    "celsius": { "type": "number" },
+    "ts":      { "type": "string", "format": "date-time" }
+  },
+  "required": ["celsius", "ts"],
+  "additionalProperties": false
+}
+
+<span class="cm"># a wrong-shaped message is refused loudly, and the last good value holds:</span>
+REJECTED plantfloor/matrix/temperature (bad shape): missing required
+property 'celsius'; missing required property 'ts'; unexpected property 'temp_f'</code></pre>
+    <p style="margin-top:14px"><strong>Why it matters:</strong> without the check, a payload like
+    <code class="inl">{"temp_f":170}</code> parses fine, <code class="inl">.celsius</code> comes back
+    <code class="inl">undefined</code>, and the OPC UA server serves garbage with no error anywhere.
+    The guard turns a silent wrong-shape into a logged rejection. <code class="inl">node validate.js</code>
+    runs the self-check.</p>
+  </div>
+
+  <div class="card blue">
+    <p><strong>The other half of the contract lives in another repository.</strong> The publisher side is
+    <a href="https://github.com/srfinch17/peckworks-esp32s3matrix/blob/main/esp32_matrix_webserver/mqtt_publisher.ino" target="_blank" rel="noopener">mqtt_publisher.ino</a>
+    in the <a href="https://github.com/srfinch17/peckworks-esp32s3matrix" target="_blank" rel="noopener">peckworks-esp32s3matrix</a>
+    firmware (an open ESP32-S3 LED-matrix project with its own
+    <a href="https://srfinch17.github.io/peckworks-esp32s3matrix/" target="_blank" rel="noopener">showcase site</a>):
+    same topics, same keys, same retained flags, plus the birth/will pair. That repo holds the publisher,
+    this one holds the consumers, and the schema file is the handshake between them. It is why swapping the
+    data source from the polling bridge to the board itself was a configuration change, not a rewrite.</p>
+  </div>
+</section>
+
 <!-- RUN IT -->
 <section id="run">
-  <h2 class="sh"><span class="n">04</span> Run it yourself</h2>
+  <h2 class="sh"><span class="n">06</span> Run it yourself</h2>
   <p class="sub">Four small pieces, each started on its own. Node 22.6+ runs the TypeScript directly, no build step.</p>
   <div class="card cyan">
 <pre><code><span class="cm"># 1. broker (Docker Desktop must be running)</span>
 docker compose up -d
 
-<span class="cm"># 2. bridge: poll the board's HTTP API, publish to MQTT</span>
+<span class="cm"># 2. data source: pick exactly ONE (both publish identical topics;
+#    running both stores every reading twice)
+#    default: the board publishes for itself. Enable MQTT in the
+#    board's web-UI settings (broker host = this PC's LAN IP, port 1883).
+#    fallback, for a board without the firmware:</span>
 node bridge/bridge.ts
 
 <span class="cm"># 3. historian: subscribe and store every reading in SQLite</span>
@@ -274,8 +359,9 @@ dotnet run --project historian
 <span class="cm"># 4. OPC UA server: re-expose the readings as browsable nodes</span>
 node opcua/server.ts</code></pre>
     <p style="margin-top:14px">Then verify at the destination, never the source's logs: <code class="inl">node scripts/dbcheck.js</code>
-    reads row counts and timestamps straight from the database, and <code class="inl">node scripts/opcuacheck.ts</code>
-    connects the way a real client would and reads live values back.</p>
+    reads row counts and timestamps straight from the database, <code class="inl">node scripts/opcuacheck.ts</code>
+    connects the way a real client would and reads live values back (including <code class="inl">Online</code>),
+    and <code class="inl">node validate.js</code> self-checks the message-shape guard.</p>
   </div>
 </section>
 
@@ -284,7 +370,9 @@ node opcua/server.ts</code></pre>
     <a class="primary" href="https://github.com/srfinch17/peckworks-plantfloor" target="_blank" rel="noopener">Source on GitHub &rarr;</a>
     <a href="https://github.com/srfinch17/peckworks-plantfloor/blob/main/README.md" target="_blank" rel="noopener">README</a>
     <a href="https://github.com/srfinch17/peckworks-plantfloor/blob/main/opcua/server.ts" target="_blank" rel="noopener">opcua/server.ts</a>
-    <a href="https://github.com/srfinch17/peckworks-plantfloor/blob/main/bridge/bridge.ts" target="_blank" rel="noopener">bridge/bridge.ts</a>
+    <a href="https://github.com/srfinch17/peckworks-plantfloor/blob/main/schemas/messages.schema.json" target="_blank" rel="noopener">schemas</a>
+    <a href="https://github.com/srfinch17/peckworks-esp32s3matrix" target="_blank" rel="noopener">board firmware &rarr;</a>
+    <a href="https://srfinch17.github.io/peckworks-esp32s3matrix/" target="_blank" rel="noopener">board's own site &rarr;</a>
   </div>
   <p class="meta-line">peckworks-plantfloor &middot; an industrial IoT telemetry pipeline &middot; MQTT (Mosquitto) + OPC UA (Node-OPCUA) + C#/.NET</p>
 </footer>

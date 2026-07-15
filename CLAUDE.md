@@ -12,7 +12,9 @@ through an OPC UA server that standard industrial clients (like UaExpert) can br
 ## Running the stack
 
 1. Broker: `docker compose up -d` (Docker Desktop must be running)
-2. Bridge: `node bridge/bridge.ts` (Node 22.6+ runs TypeScript directly, no build step)
+2. Data source, pick ONE: the board's own firmware MQTT publisher (default; enable in the
+   board's web-UI settings, broker host = this PC's LAN IP), or the fallback bridge
+   `node bridge/bridge.ts` (Node 22.6+ runs TypeScript directly, no build step)
 3. Historian: `dotnet run --project historian`
 4. OPC UA server: `node opcua/server.ts`
 
@@ -34,3 +36,6 @@ validates every incoming message against them (`validate.js`) and rejects a wron
   Verify at the destination (`scripts/dbcheck.js`), not the source's logs.
 - The board's temperature endpoint reports CHIP temperature, not room temperature. Label it
   honestly in every doc and demo.
+- Run exactly ONE publisher (board firmware MQTT or the bridge, never both). They publish
+  identical topics, so the historian faithfully stores every reading twice; dbcheck's
+  total-vs-distinct comparison is how you catch it.
